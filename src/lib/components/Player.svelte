@@ -1,144 +1,15 @@
 <script lang="ts">
-    import { onMount, onDestroy } from 'svelte';
     import type { Song } from '$lib/types/song';
 
     export let songs: Song[] = [];
-
-    let currentIndex = 0;
-    let audio: HTMLAudioElement;
-    let currentTime = 0;
-    let duration = 0;
-    let isLoading = false;
-    let audioContext: AudioContext | null = null;
-    let audioSource: MediaElementAudioSourceNode | null = null;
-
-    // Use the $ syntax for derived values
-    $: currentSong = songs[currentIndex];
-    $: isPlaying = audio && !audio.paused; // Automatically derive isPlaying from audio state
-
-    onMount(() => {
-        audio = new Audio();
-        audio.preload = 'auto';
-
-        try {
-            audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            if (audioContext) {
-                audioSource = audioContext.createMediaElementSource(audio);
-                audioSource.connect(audioContext.destination);
-            }
-        } catch (e) {
-            console.error('AudioContext not supported', e);
-        }
-
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-        audio.addEventListener('ended', handleEnded);
-        audio.addEventListener('error', () => {
-            console.error('Audio error occurred');
-            isLoading = false;
-        });
-
-        if (songs.length > 0) {
-            setupCurrentSong();
-        }
-    });
-
-    onDestroy(() => {
-        if (audio) {
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.removeEventListener('ended', handleEnded);
-            audio.pause();
-            audio.src = '';
-        }
-
-        if (audioContext) {
-            audioContext.close();
-        }
-    });
-
-    function setupCurrentSong() {
-        if (!audio || !currentSong) return;
-
-        isLoading = true;
-        audio.pause();
-        audio.currentTime = 0;
-        audio.src = currentSong.url;
-        audio.load();
-    }
-
-    function togglePlay() {
-        if (!audio || isLoading) return;
-
-        if (audioContext && audioContext.state === 'suspended') {
-            audioContext.resume();
-        }
-
-        if (audio.paused) {
-            audio.play().catch(error => {
-                console.error('Play error:', error);
-            });
-        } else {
-            audio.pause();
-        }
-    }
-
-    function playNext() {
-        if (isLoading || songs.length <= 1) return;
-
-        currentIndex = (currentIndex + 1) % songs.length;
-        setupCurrentSong();
-
-        audio.oncanplay = () => {
-            audio.oncanplay = null;
-            isLoading = false;
-
-            if (!audio.paused) {
-                audio.play().catch(error => {
-                    console.error('Failed to play next track:', error);
-                });
-            }
-        };
-    }
-
-    function playPrevious() {
-        if (isLoading || songs.length <= 1) return;
-
-        currentIndex = (currentIndex - 1 + songs.length) % songs.length;
-        setupCurrentSong();
-
-        audio.oncanplay = () => {
-            audio.oncanplay = null;
-            isLoading = false;
-
-            if (!audio.paused) {
-                audio.play().catch(error => {
-                    console.error('Failed to play previous track:', error);
-                });
-            }
-        };
-    }
-
-    function handleTimeUpdate() {
-        currentTime = audio.currentTime;
-    }
-
-    function handleLoadedMetadata() {
-        duration = audio.duration;
-        isLoading = false;
-    }
-
-    function handleEnded() {
-        playNext();
-    }
-
-    function seekTo(e: Event) {
-        const target = e.target as HTMLInputElement;
-        const seekTime = Number(target.value);
-        if (audio) {
-            audio.currentTime = seekTime;
-        }
-    }
+    export let currentSong: Song;
+    export let isPlaying: boolean;
+    export let isLoading: boolean;
+    export let currentTime: number;
+    export let duration: number;
+    export let onTogglePlay: () => void;
+    export let onPlayNext: () => void;
+    export let onPlayPrevious: () => void;
 
     function formatTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -171,7 +42,7 @@
                     min="0" 
                     max={duration || 0} 
                     value={currentTime} 
-                    oninput={seekTo}
+                    oninput={(e) => onSeek(e)}
                     class="w-full cursor-pointer"
                 >
                 <div class="flex justify-between text-xs text-gray-400">
@@ -183,7 +54,7 @@
             <div class="flex justify-center space-x-4">
                 <button 
                     class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" 
-                    onclick={playPrevious}
+                    onclick={onPlayPrevious}
                     aria-label="Previous track"
                     disabled={isLoading}
                 >
@@ -191,7 +62,7 @@
                 </button>
                 <button 
                     class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" 
-                    onclick={togglePlay}
+                    onclick={onTogglePlay}
                     aria-label={isPlaying ? 'Pause' : 'Play'}
                     disabled={isLoading}
                 >
@@ -199,7 +70,7 @@
                 </button>
                 <button 
                     class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" 
-                    onclick={playNext}
+                    onclick={onPlayNext}
                     aria-label="Next track"
                     disabled={isLoading}
                 >
