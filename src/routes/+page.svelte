@@ -154,6 +154,27 @@
         currentTime = time; // Update currentTime to reflect the seek
         console.log('Seeked to:', time);
     }
+
+    function playSong(song: Song) {
+        const index = library.findIndex((s) => s.url === song.url);
+        if (index === -1 || isLoading) return;
+
+        currentIndex = index;
+        currentSong = library[currentIndex]; // Update currentSong before setup
+        setupCurrentSong();
+
+        audio.oncanplay = () => {
+            audio.oncanplay = null;
+            isLoading = false;
+
+            audio.play().then(() => {
+                isPlaying = true;
+            }).catch(error => {
+                console.error('Failed to play selected track:', error);
+            });
+        };
+        console.log('Playing selected track:', currentSong.title);
+    }
 </script>
 
 <div class="container mx-auto p-4">
@@ -173,9 +194,9 @@
 </div>
 <div class="container mx-auto p-4">
     <ul class="flex flex-col gap-4">
-        {#each library as song}
+        {#each library.slice().sort((a, b) => a.title.localeCompare(b.title)) as song}
             <li>
-                <SongItem song={song} />
+                <SongItem song={song} onPlay={() => playSong(song)} />
             </li>
         {/each}
     </ul>
