@@ -4,4 +4,5 @@ export interface Song {
     album: string;
     cover: string;
     url: string;
+    genre: string;
 }

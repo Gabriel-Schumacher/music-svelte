@@ -10,6 +10,7 @@
     export let onTogglePlay: () => void;
     export let onPlayNext: () => void;
     export let onPlayPrevious: () => void;
+    export let onSeekTo: (time: number) => void; // Add this prop
 
     function formatTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -43,14 +44,19 @@
             </div>
             
             <div class="w-full mb-4">
-                <input 
-                    type="range" 
-                    min="0" 
-                    max={duration || 0} 
-                    value={currentTime} 
-                    oninput={(e) => onSeek(e)}
-                    class="w-full cursor-pointer"
-                >
+                <input
+                class="w-full h-2 bg-gray-700 rounded-lg cursor-pointer"
+                type="range"
+                min="0"
+                max={duration}
+                value={currentTime}
+                oninput={(e) => {
+                    const target = e.target as HTMLInputElement | null;
+                    if (target) {
+                        onSeekTo(parseFloat(target.value));
+                    }
+                }}
+            />
                 <div class="flex justify-between text-xs text-gray-400">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
@@ -59,7 +65,7 @@
             
             <div class="flex justify-center space-x-4">
                 <button 
-                    class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" 
+                    class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 cursor-pointer" 
                     onclick={onPlayPrevious}
                     aria-label="Previous track"
                     disabled={isLoading}
@@ -67,7 +73,7 @@
                     ⏮️
                 </button>
                 <button 
-                    class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" 
+                    class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 cursor-pointer" 
                     onclick={onTogglePlay}
                     aria-label={isPlaying ? 'Pause' : 'Play'}
                     disabled={isLoading}
@@ -75,7 +81,7 @@
                     {isPlaying ? '⏸️' : '▶️'}
                 </button>
                 <button 
-                    class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" 
+                    class="p-2 rounded-full bg-gray-700 hover:bg-gray-600 cursor-pointer" 
                     onclick={onPlayNext}
                     aria-label="Next track"
                     disabled={isLoading}
@@ -90,10 +96,3 @@
         No songs available in the library.
     </div>
 {/if}
-
-<style>
-    button[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-</style>

@@ -10,21 +10,40 @@
             artist: 'Simon & Garfunkel',
             album: 'Wednesday Morning, 3 A.M.',
             cover: '/src/lib/Media/BleeckerSteet.jpg',
-            url: '/src/lib/Media/BleeckerStreet.mp3'
+            url: '/src/lib/Media/BleeckerStreet.mp3',
+            genre: 'Folk Rock',
         },
         {
             title: 'Bright Lights',
             artist: 'The Killers',
             album: 'Single',
             cover: '/src/lib/Media/BrightLights.jpeg',
-            url: '/src/lib/Media/BrightLights.mp3'
+            url: '/src/lib/Media/BrightLights.mp3',
+            genre: 'Alternative Rock',
         },
         {
             title: 'Hound Dog',
             artist: 'Elvis Presley',
             album: 'Elvis (1956)',
             cover: '/src/lib/Media/HoundDog.png',
-            url: '/src/lib/Media/HoundDog.mp3'
+            url: '/src/lib/Media/HoundDog.mp3',
+            genre: 'Rock and Roll',
+        },
+        {
+            title: 'Fortnite',
+            artist: 'Taylor Swift',
+            album: 'The Tortured Poets Society',
+            cover: '/src/lib/Media/Fortnite.webp',
+            url: '/src/lib/Media/Fortnite.mp3',
+            genre: 'Pop',
+        },
+        {
+            title: 'I Had Some Help',
+            artist: 'Morgan Wallen & Post Malone',
+            album: 'F-1 Trillion',
+            cover: '/src/lib/Media/HadHelp.webp',
+            url: '/src/lib/Media/HadHelp.mp3',
+            genre: 'Country',
         },
     ];
 
@@ -127,6 +146,14 @@
         duration = audio.duration;
         isLoading = false;
     }
+
+    function seekTo(time: number) {
+        if (!audio || isLoading) return;
+
+        audio.currentTime = time;
+        currentTime = time; // Update currentTime to reflect the seek
+        console.log('Seeked to:', time);
+    }
 </script>
 
 <div class="container mx-auto p-4">
@@ -141,6 +168,7 @@
         onTogglePlay={togglePlay}
         onPlayNext={playNext}
         onPlayPrevious={playPrevious}
+        onSeekTo={seekTo} 
     />
 </div>
 <div class="container mx-auto p-4">
