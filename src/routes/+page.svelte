@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { writable } from 'svelte/store';
     import Player from '$lib/components/Player.svelte';
     import SongItem from '$lib/components/SongItem.svelte';
     import { onMount } from 'svelte';
@@ -32,7 +33,7 @@
         {
             title: 'Fortnite',
             artist: 'Taylor Swift',
-            album: 'The Tortured Poets Society',
+            album: 'The Tortured Poet\'s Society',
             cover: '/Fortnite.webp',
             url: '/Fortnite.mp3',
             genre: 'Pop',
@@ -47,16 +48,33 @@
         },
     ];
 
-    let playlists = []
+    let playlists = [];
 
-    let currentIndex = 0;
+    // Create a writable store for currentIndex with persistence in localStorage
+    function createPersistentIndex() {
+        const savedIndex = typeof window !== 'undefined' ? localStorage.getItem('currentIndex') : null;
+        const initialIndex = savedIndex !== null ? parseInt(savedIndex, 10) : 0;
+
+        const { subscribe, set, update } = writable(initialIndex);
+
+        subscribe((value) => {
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('currentIndex', value.toString());
+            }
+        });
+
+        return { subscribe, set, update };
+    }
+
+    export const currentIndex = createPersistentIndex();
+
     let audio: HTMLAudioElement;
     let isPlaying = false;
     let isLoading = false;
     let currentTime = 0;
     let duration = 0;
 
-    $: currentSong = library[currentIndex];
+    $: currentSong = library[$currentIndex]; // Derive currentSong dynamically
 
     onMount(() => {
         audio = new Audio();
@@ -74,14 +92,13 @@
     });
 
     function setupCurrentSong() {
-        if (!audio || !currentSong) return;
+        if (!audio || !library[$currentIndex]) return;
 
         isLoading = true;
         audio.pause();
         audio.currentTime = 0;
-        audio.src = currentSong.url;
+        audio.src = library[$currentIndex].url;
         audio.load();
-        currentSong = library[currentIndex]; // Ensure currentSong is updated
     }
 
     function togglePlay() {
@@ -103,8 +120,7 @@
     function playNext() {
         if (isLoading || library.length <= 1) return;
 
-        currentIndex = (currentIndex + 1) % library.length;
-        currentSong = library[currentIndex]; // Update currentSong before setup
+        currentIndex.update((index) => (index + 1) % library.length);
         setupCurrentSong();
 
         audio.oncanplay = () => {
@@ -117,14 +133,13 @@
                 });
             }
         };
-        console.log('Next track:', currentSong.title);
+        console.log('Next track:', library[$currentIndex].title);
     }
 
     function playPrevious() {
         if (isLoading || library.length <= 1) return;
 
-        currentIndex = (currentIndex - 1 + library.length) % library.length;
-        currentSong = library[currentIndex]; // Update currentSong before setup
+        currentIndex.update((index) => (index - 1 + library.length) % library.length);
         setupCurrentSong();
 
         audio.oncanplay = () => {
@@ -137,7 +152,7 @@
                 });
             }
         };
-        console.log('Previous track:', currentSong.title);
+        console.log('Previous track:', library[$currentIndex].title);
     }
 
     function handleTimeUpdate() {
@@ -153,7 +168,7 @@
         if (!audio || isLoading) return;
 
         audio.currentTime = time;
-        currentTime = time; // Update currentTime to reflect the seek
+        currentTime = time;
         console.log('Seeked to:', time);
     }
 
@@ -161,8 +176,7 @@
         const index = library.findIndex((s) => s.url === song.url);
         if (index === -1 || isLoading) return;
 
-        currentIndex = index;
-        currentSong = library[currentIndex]; // Update currentSong before setup
+        currentIndex.set(index);
         setupCurrentSong();
 
         audio.oncanplay = () => {
@@ -175,7 +189,7 @@
                 console.error('Failed to play selected track:', error);
             });
         };
-        console.log('Playing selected track:', currentSong.title);
+        console.log('Playing selected track:', library[$currentIndex].title);
     }
 </script>
 
