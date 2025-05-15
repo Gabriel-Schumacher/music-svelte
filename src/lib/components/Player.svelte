@@ -16,6 +16,12 @@
         const secs = Math.floor(seconds % 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
     }
+    function onSeek(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const seekTime = parseFloat(input.value);
+        console.log(`Seeking to ${seekTime} seconds`);
+        // Add logic to handle seeking here
+    }
 </script>
 
 {#if songs.length > 0}

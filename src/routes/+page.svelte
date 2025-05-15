@@ -60,6 +60,7 @@
         audio.currentTime = 0;
         audio.src = currentSong.url;
         audio.load();
+        currentSong = library[currentIndex]; // Ensure currentSong is updated
     }
 
     function togglePlay() {
@@ -75,12 +76,14 @@
             audio.pause();
             isPlaying = false;
         }
+        console.log('Play/Pause toggled:', isPlaying, currentSong.title);
     }
 
     function playNext() {
         if (isLoading || library.length <= 1) return;
 
         currentIndex = (currentIndex + 1) % library.length;
+        currentSong = library[currentIndex]; // Update currentSong before setup
         setupCurrentSong();
 
         audio.oncanplay = () => {
@@ -93,12 +96,14 @@
                 });
             }
         };
+        console.log('Next track:', currentSong.title);
     }
 
     function playPrevious() {
         if (isLoading || library.length <= 1) return;
 
         currentIndex = (currentIndex - 1 + library.length) % library.length;
+        currentSong = library[currentIndex]; // Update currentSong before setup
         setupCurrentSong();
 
         audio.oncanplay = () => {
@@ -111,6 +116,7 @@
                 });
             }
         };
+        console.log('Previous track:', currentSong.title);
     }
 
     function handleTimeUpdate() {
