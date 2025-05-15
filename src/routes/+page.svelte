@@ -47,6 +47,8 @@
         },
     ];
 
+    let playlists = []
+
     let currentIndex = 0;
     let audio: HTMLAudioElement;
     let isPlaying = false;
