@@ -11,6 +11,8 @@
     export let onPlayNext: () => void;
     export let onPlayPrevious: () => void;
     export let onSeekTo: (time: number) => void; // Add this prop
+    export let totalSongs: number;
+    export let currentIndex: number;
 
     function formatTime(seconds: number): string {
         const mins = Math.floor(seconds / 60);
@@ -60,6 +62,9 @@
                 <div class="flex justify-between text-xs text-gray-400">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
+                </div>
+                <div>
+                    <span class="text-gray-500 text-sm">Track {currentIndex + 1} of {totalSongs}</span>
                 </div>
             </div>
             

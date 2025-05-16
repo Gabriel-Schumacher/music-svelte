@@ -73,6 +73,7 @@
     let isLoading = false;
     let currentTime = 0;
     let duration = 0;
+    let totalSongs = library.length;
 
     $: currentSong = library[$currentIndex]; // Derive currentSong dynamically
 
@@ -194,7 +195,7 @@
 </script>
 
 <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-8 text-center">Music Player</h1>
+    <h1 class="text-3xl font-bold mt-4 mb-8 text-center">Music Player</h1>
     <Player
         songs={library}
         currentSong={currentSong}
@@ -206,6 +207,8 @@
         onPlayNext={playNext}
         onPlayPrevious={playPrevious}
         onSeekTo={seekTo} 
+        totalSongs={totalSongs}
+        currentIndex={$currentIndex}
     />
 </div>
 <div class="container mx-auto p-4">
